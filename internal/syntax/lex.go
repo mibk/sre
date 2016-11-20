@@ -1,4 +1,4 @@
-package sre
+package syntax
 
 import (
 	"errors"
