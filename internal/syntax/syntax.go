@@ -52,6 +52,19 @@ func (a Any) Consume(b []byte) (n int, ok bool) {
 	return size, size > 0
 }
 
+type CharSet struct {
+	Chars []Char
+}
+
+func (cs CharSet) Consume(b []byte) (n int, ok bool) {
+	for _, c := range cs.Chars {
+		if n, ok := c.Consume(b); ok {
+			return n, ok
+		}
+	}
+	return 0, false
+}
+
 const Unlimited = -1
 
 type Repetition struct {

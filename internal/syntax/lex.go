@@ -15,7 +15,25 @@ const (
 	QuestMark
 	Mul
 	Plus
+
+	LBracket
+	RBracket
 )
+
+var specials = map[rune]rune{
+	Dot:       '.',
+	QuestMark: '?',
+	Mul:       '*',
+	Plus:      '+',
+}
+
+func Unescape(r rune) rune {
+	r2, ok := specials[r]
+	if !ok {
+		panic(fmt.Sprintf("unknown special character: %c", r))
+	}
+	return r2
+}
 
 type lexer struct {
 	src string
@@ -37,7 +55,7 @@ func (l *lexer) Next() rune {
 		case EOF:
 			l.err = errors.New("trailing backslash")
 			return Error
-		case '\\', '.', '?', '*', '+':
+		case '\\', '.', '?', '*', '+', '[', ']':
 			return r
 		default:
 			l.err = fmt.Errorf(`invalid escape sequence: \%c`)
@@ -51,6 +69,10 @@ func (l *lexer) Next() rune {
 		return Mul
 	case '+':
 		return Plus
+	case '[':
+		return LBracket
+	case ']':
+		return RBracket
 	default:
 		return r
 	}
