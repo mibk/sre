@@ -3,15 +3,15 @@ package sre
 import "github.com/mibk/sre/internal/syntax"
 
 type Rx struct {
-	prog *syntax.Prog
+	gr *syntax.Group
 }
 
 func MustCompile(str string) *Rx {
-	prog, err := syntax.Compile(str)
+	gr, err := syntax.Compile(str)
 	if err != nil {
 		panic(err)
 	}
-	return &Rx{prog}
+	return &Rx{gr}
 }
 
-func (rx *Rx) Match(b []byte) bool { return rx.prog.Match(b) }
+func (rx *Rx) Match(b []byte) bool { return rx.gr.Match(b) }

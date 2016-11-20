@@ -1,15 +1,16 @@
 package syntax
 
-import "unicode/utf8"
+import (
+	"errors"
+	"unicode/utf8"
+)
 
-type Prog struct {
-	exprs []Consumer
+type Group struct {
+	Exprs []Expr
 }
 
-func Compile(str string) (*Prog, error) {
-	var prog Prog
-	var lexpr Consumer
-
+func Compile(str string) (*Group, error) {
+	var gr Group
 	l := newLexer(str)
 	for {
 		r := l.Next()
@@ -19,35 +20,43 @@ func Compile(str string) (*Prog, error) {
 			return nil, l.Err()
 		}
 
-		var expr Consumer
 		switch r {
-		case QuestMark:
-			lexpr = NewQuantifier(lexpr, 0, 1)
-			continue
-		case Mul:
-			lexpr = NewQuantifier(lexpr, 0, Unlimited)
-			continue
-		case Plus:
-			lexpr = NewQuantifier(lexpr, 1, Unlimited)
-			continue
+		case QuestMark, Mul, Plus:
+			last, err := gr.last()
+			if err != nil {
+				return nil, err
+			}
+			min, max := 0, 1
+			switch r {
+			case Plus:
+				min = 1
+				fallthrough
+			case Mul:
+				max = Unlimited
+			}
+			*last = NewQuantifier(*last, min, max)
 		case Dot:
-			expr = Any{}
+			gr.add(Any{})
 		default:
-			expr = Char(r)
+			gr.add(Char(r))
 		}
-		if lexpr != nil {
-			prog.exprs = append(prog.exprs, lexpr)
-		}
-		lexpr = expr
 	}
-	if lexpr != nil {
-		prog.exprs = append(prog.exprs, lexpr)
-	}
-	return &prog, nil
+	return &gr, nil
 }
 
-func (p *Prog) Match(b []byte) bool {
-	for _, e := range p.exprs {
+func (g *Group) add(expr Expr) {
+	g.Exprs = append(g.Exprs, expr)
+}
+
+func (g *Group) last() (*Expr, error) {
+	if len(g.Exprs) == 0 {
+		return nil, errors.New("missing argument to quantifier")
+	}
+	return &g.Exprs[len(g.Exprs)-1], nil
+}
+
+func (g *Group) Match(b []byte) bool {
+	for _, e := range g.Exprs {
 		n, ok := e.Consume(b)
 		if !ok {
 			return false
@@ -57,7 +66,7 @@ func (p *Prog) Match(b []byte) bool {
 	return len(b) == 0
 }
 
-type Consumer interface {
+type Expr interface {
 	Consume(b []byte) (n int, ok bool)
 }
 
@@ -78,16 +87,14 @@ func (a Any) Consume(b []byte) (n int, ok bool) {
 	return size, size > 0
 }
 
-const (
-	Unlimited = -1
-)
+const Unlimited = -1
 
 type Quantifier struct {
-	expr     Consumer
-	min, max int
+	Expr     Expr
+	Min, Max int
 }
 
-func NewQuantifier(e Consumer, min, max int) Quantifier {
+func NewQuantifier(e Expr, min, max int) Quantifier {
 	return Quantifier{e, min, max}
 }
 
@@ -95,15 +102,15 @@ func (q Quantifier) Consume(b []byte) (n int, ok bool) {
 	var i int
 	var m int
 	for ; ; i++ {
-		n, ok := q.expr.Consume(b)
+		n, ok := q.Expr.Consume(b)
 		if !ok {
 			break
 		}
 		b = b[n:]
 		m += n
 	}
-	if (q.min == Unlimited || i >= q.min) &&
-		(q.max == Unlimited || i <= q.max) {
+	if (q.Min == Unlimited || i >= q.Min) &&
+		(q.Max == Unlimited || i <= q.Max) {
 		return m, true
 	}
 	return 0, false
