@@ -34,7 +34,7 @@ func Compile(str string) (*Group, error) {
 			case Mul:
 				max = Unlimited
 			}
-			*last = NewQuantifier(*last, min, max)
+			*last = NewRepetition(*last, min, max)
 		case Dot:
 			gr.add(Any{})
 		default:
@@ -89,28 +89,28 @@ func (a Any) Consume(b []byte) (n int, ok bool) {
 
 const Unlimited = -1
 
-type Quantifier struct {
+type Repetition struct {
 	Expr     Expr
 	Min, Max int
 }
 
-func NewQuantifier(e Expr, min, max int) Quantifier {
-	return Quantifier{e, min, max}
+func NewRepetition(e Expr, min, max int) Repetition {
+	return Repetition{e, min, max}
 }
 
-func (q Quantifier) Consume(b []byte) (n int, ok bool) {
+func (r Repetition) Consume(b []byte) (n int, ok bool) {
 	var i int
 	var m int
 	for ; ; i++ {
-		n, ok := q.Expr.Consume(b)
+		n, ok := r.Expr.Consume(b)
 		if !ok {
 			break
 		}
 		b = b[n:]
 		m += n
 	}
-	if (q.Min == Unlimited || i >= q.Min) &&
-		(q.Max == Unlimited || i <= q.Max) {
+	if (r.Min == Unlimited || i >= r.Min) &&
+		(r.Max == Unlimited || i <= r.Max) {
 		return m, true
 	}
 	return 0, false
