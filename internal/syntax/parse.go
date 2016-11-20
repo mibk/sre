@@ -95,7 +95,7 @@ Loop:
 
 func (p *parser) parseCharSet() *CharSet {
 	var cs CharSet
-	if r := p.peek(); r == Caret {
+	if p.peek() == Caret {
 		p.next()
 		cs.Neg = true
 	}
@@ -111,11 +111,19 @@ Loop:
 		case Dot, QuestMark, Mul, Plus, LParen, RParen, Or, Caret:
 			r = Unescape(r)
 			fallthrough
+		case '-':
+			if len(cs.Exprs) > 0 {
+				if c, ok := cs.Exprs[len(cs.Exprs)-1].(Char); ok && p.peek() != RBrace {
+					cs.Exprs[len(cs.Exprs)-1] = Range{rune(c), p.next()}
+					continue
+				}
+			}
+			fallthrough
 		default:
-			cs.Chars = append(cs.Chars, Char(r))
+			cs.Exprs = append(cs.Exprs, Char(r))
 		}
 	}
-	if len(cs.Chars) == 0 {
+	if len(cs.Exprs) == 0 {
 		p.saveErr(errors.New("empty character set"))
 		return nil
 	}

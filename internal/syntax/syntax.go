@@ -54,7 +54,7 @@ type Char rune
 
 func (c Char) Consume(b []byte) (n int, ok bool) {
 	r, size := utf8.DecodeRune(b)
-	if rune(c) == rune(r) {
+	if rune(c) == r {
 		return size, true
 	}
 	return 0, false
@@ -69,14 +69,14 @@ func (Any) Consume(b []byte) (n int, ok bool) {
 
 type CharSet struct {
 	Neg   bool
-	Chars []Char
+	Exprs []Expr
 }
 
 var any = Any{}
 
 func (cs CharSet) Consume(b []byte) (n int, ok bool) {
-	for _, c := range cs.Chars {
-		if n, ok := c.Consume(b); ok {
+	for _, e := range cs.Exprs {
+		if n, ok := e.Consume(b); ok {
 			if cs.Neg {
 				return 0, false
 			}
@@ -85,6 +85,18 @@ func (cs CharSet) Consume(b []byte) (n int, ok bool) {
 	}
 	if cs.Neg {
 		return any.Consume(b)
+	}
+	return 0, false
+}
+
+type Range struct {
+	From, To rune
+}
+
+func (ra Range) Consume(b []byte) (n int, ok bool) {
+	r, size := utf8.DecodeRune(b)
+	if r >= ra.From && r <= ra.To {
+		return size, true
 	}
 	return 0, false
 }
