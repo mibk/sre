@@ -9,41 +9,6 @@ type Group struct {
 	Exprs []Expr
 }
 
-func Compile(str string) (*Group, error) {
-	var gr Group
-	l := newLexer(str)
-	for {
-		r := l.Next()
-		if r == EOF {
-			break
-		} else if r == Error {
-			return nil, l.Err()
-		}
-
-		switch r {
-		case QuestMark, Mul, Plus:
-			last, err := gr.last()
-			if err != nil {
-				return nil, err
-			}
-			min, max := 0, 1
-			switch r {
-			case Plus:
-				min = 1
-				fallthrough
-			case Mul:
-				max = Unlimited
-			}
-			*last = NewRepetition(*last, min, max)
-		case Dot:
-			gr.add(Any{})
-		default:
-			gr.add(Char(r))
-		}
-	}
-	return &gr, nil
-}
-
 func (g *Group) add(expr Expr) {
 	g.Exprs = append(g.Exprs, expr)
 }
