@@ -10,6 +10,8 @@ const (
 	_ = utf8.MaxRune + iota
 	EOF
 	Error
+
+	Dot
 	QuestMark
 	Mul
 	Plus
@@ -35,12 +37,14 @@ func (l *lexer) Next() rune {
 		case EOF:
 			l.err = errors.New("trailing backslash")
 			return Error
-		case '\\', '?', '*', '+':
+		case '\\', '.', '?', '*', '+':
 			return r
 		default:
 			l.err = fmt.Errorf(`invalid escape sequence: \%c`)
 			return r
 		}
+	case '.':
+		return Dot
 	case '?':
 		return QuestMark
 	case '*':

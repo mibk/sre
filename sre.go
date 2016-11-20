@@ -30,6 +30,8 @@ func MustCompile(str string) *Rx {
 		case Plus:
 			lexpr = NewQuantifier(lexpr, 1, Unlimited)
 			continue
+		case Dot:
+			expr = Any{}
 		default:
 			expr = Char(r)
 		}
@@ -68,6 +70,13 @@ func (c Char) Consume(b []byte) (n int, ok bool) {
 		return size, true
 	}
 	return 0, false
+}
+
+type Any struct{}
+
+func (a Any) Consume(b []byte) (n int, ok bool) {
+	_, size := utf8.DecodeRune(b)
+	return size, size > 0
 }
 
 const (
