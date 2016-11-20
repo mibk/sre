@@ -7,10 +7,19 @@ type Rx struct {
 func MustCompile(str string) *Rx {
 	var rx Rx
 	var lexpr Consumer
-	for _, r := range str {
+
+	l := newLexer(str)
+	for {
+		r := l.Next()
+		if r == EOF {
+			break
+		} else if r == Error {
+			panic(l.Err())
+		}
+
 		var expr Consumer
 		switch r {
-		case '+':
+		case Plus:
 			lexpr = NewQuantifier(lexpr, 1, Unlimited)
 			continue
 		default:
