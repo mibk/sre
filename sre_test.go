@@ -12,6 +12,7 @@ func TestMatch(t *testing.T) {
 		1: {`ab+`, `a`, false},
 		2: {`x+y`, `xxxxxy`, true},
 		3: {`x+y`, `xyy`, false},
+		4: {`č+řř`, `ččřř`, true},
 	}
 
 	for i, tt := range tests {

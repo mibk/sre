@@ -1,5 +1,7 @@
 package sre
 
+import "unicode/utf8"
+
 type Rx struct {
 	exprs []Consumer
 }
@@ -23,7 +25,7 @@ func MustCompile(str string) *Rx {
 			lexpr = NewQuantifier(lexpr, 1, Unlimited)
 			continue
 		default:
-			expr = Lit(r)
+			expr = Char(r)
 		}
 		if lexpr != nil {
 			rx.exprs = append(rx.exprs, lexpr)
@@ -52,12 +54,12 @@ type Consumer interface {
 	Consume(b []byte) (n int, ok bool)
 }
 
-type Lit rune
+type Char rune
 
-func (l Lit) Consume(b []byte) (n int, ok bool) {
-	// TODO: utf8
-	if len(b) > 0 && rune(l) == rune(b[0]) {
-		return 1, true
+func (c Char) Consume(b []byte) (n int, ok bool) {
+	r, size := utf8.DecodeRune(b)
+	if rune(c) == rune(r) {
+		return size, true
 	}
 	return 0, false
 }
