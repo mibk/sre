@@ -20,6 +20,7 @@ func TestMatch(t *testing.T) {
 		9:  {`ab|cd|ef`, `ab`, true},
 		10: {`ab|cd|ef`, `cd`, true},
 		11: {`ab|cd|ef`, `ef`, true},
+		12: {`(xy)+`, `xyxyxy`, true},
 	}
 
 	for i, tt := range tests {

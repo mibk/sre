@@ -10,7 +10,7 @@ type parser struct {
 func Compile(str string) (Expr, error) {
 	l := newLexer(str)
 	p := &parser{lex: l}
-	expr := p.parseGroup()
+	expr := p.parseGroup(false)
 	if p.err != nil {
 		return nil, p.err
 	}
@@ -30,12 +30,12 @@ func (p *parser) next() rune {
 }
 
 func (p *parser) saveErr(err error) {
-	if p.err != nil {
+	if p.err == nil {
 		p.err = err
 	}
 }
 
-func (p *parser) parseGroup() Expr {
+func (p *parser) parseGroup(sub bool) Expr {
 	gr := new(Group)
 	var expr Expr = gr
 Loop:
@@ -65,6 +65,14 @@ Loop:
 		case Or:
 			gr = new(Group)
 			expr = &OrGroup{expr, gr}
+		case LParen:
+			gr.add(p.parseGroup(true))
+		case RParen:
+			if sub {
+				break Loop
+			}
+			p.saveErr(errors.New("unexpected )"))
+			return nil
 		default:
 			gr.add(Char(r))
 		}
