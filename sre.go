@@ -21,6 +21,12 @@ func MustCompile(str string) *Rx {
 
 		var expr Consumer
 		switch r {
+		case QuestMark:
+			lexpr = NewQuantifier(lexpr, 0, 1)
+			continue
+		case Mul:
+			lexpr = NewQuantifier(lexpr, 0, Unlimited)
+			continue
 		case Plus:
 			lexpr = NewQuantifier(lexpr, 1, Unlimited)
 			continue
