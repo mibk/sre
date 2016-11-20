@@ -6,12 +6,17 @@ type Rx struct {
 	expr syntax.Expr
 }
 
-func MustCompile(str string) *Rx {
+func Compile(str string) (*Rx, error) {
 	expr, err := syntax.Compile(str)
+	return &Rx{expr}, err
+}
+
+func MustCompile(str string) *Rx {
+	rx, err := Compile(str)
 	if err != nil {
 		panic(err)
 	}
-	return &Rx{expr}
+	return rx
 }
 
 func (rx *Rx) Match(b []byte) bool {

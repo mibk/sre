@@ -24,7 +24,10 @@ func TestMatch(t *testing.T) {
 	}
 
 	for i, tt := range tests {
-		rx := MustCompile(tt.pattern)
+		rx, err := Compile(tt.pattern)
+		if err != nil {
+			t.Errorf("test[%d]: unexpected err: %v", i, err)
+		}
 		if got := rx.Match([]byte(tt.input)); got != tt.want {
 			t.Errorf("test[%d]: got %v, want %v", i, got, tt.want)
 		}
