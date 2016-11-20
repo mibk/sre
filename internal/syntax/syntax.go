@@ -61,20 +61,29 @@ func (c Char) Consume(b []byte) (n int, ok bool) {
 
 type Any struct{}
 
-func (a Any) Consume(b []byte) (n int, ok bool) {
+func (Any) Consume(b []byte) (n int, ok bool) {
 	_, size := utf8.DecodeRune(b)
 	return size, size > 0
 }
 
 type CharSet struct {
+	Neg   bool
 	Chars []Char
 }
+
+var any = Any{}
 
 func (cs CharSet) Consume(b []byte) (n int, ok bool) {
 	for _, c := range cs.Chars {
 		if n, ok := c.Consume(b); ok {
-			return n, ok
+			if cs.Neg {
+				return 0, false
+			}
+			return n, true
 		}
+	}
+	if cs.Neg {
+		return any.Consume(b)
 	}
 	return 0, false
 }

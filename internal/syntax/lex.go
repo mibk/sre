@@ -22,6 +22,7 @@ const (
 	RParen
 
 	Or
+	Caret
 )
 
 var specials = map[rune]rune{
@@ -34,6 +35,7 @@ var specials = map[rune]rune{
 	LParen:    '(',
 	RParen:    ')',
 	Or:        '|',
+	Caret:     '^',
 }
 
 func Unescape(r rune) rune {
@@ -64,7 +66,7 @@ func (l *lexer) Next() rune {
 		case EOF:
 			l.err = errors.New("trailing backslash")
 			return Error
-		case '\\', '.', '?', '*', '+', '[', ']', '(', ')', '|':
+		case '\\', '.', '?', '*', '+', '[', ']', '(', ')', '|', '^':
 			return r
 		default:
 			l.err = fmt.Errorf(`invalid escape sequence: \%c`)
@@ -88,6 +90,8 @@ func (l *lexer) Next() rune {
 		return RParen
 	case '|':
 		return Or
+	case '^':
+		return Caret
 	default:
 		return r
 	}

@@ -3,8 +3,9 @@ package syntax
 import "errors"
 
 type parser struct {
-	lex *lexer
-	err error
+	lex    *lexer
+	err    error
+	peeked *rune
 }
 
 func Compile(str string) (Expr, error) {
@@ -17,15 +18,25 @@ func Compile(str string) (Expr, error) {
 	return expr, nil
 }
 
-func (p *parser) next() rune {
+func (p *parser) peek() rune {
 	if p.err != nil {
 		return EOF
+	}
+	if r := p.peeked; r != nil {
+		return *r
 	}
 	r := p.lex.Next()
 	if r == Error {
 		p.err = p.lex.Err()
 		return EOF
 	}
+	p.peeked = &r
+	return r
+}
+
+func (p *parser) next() rune {
+	r := p.peek()
+	p.peeked = nil
 	return r
 }
 
@@ -82,6 +93,10 @@ Loop:
 
 func (p *parser) parseCharSet() *CharSet {
 	var cs CharSet
+	if r := p.peek(); r == Caret {
+		p.next()
+		cs.Neg = true
+	}
 Loop:
 	for {
 		switch r := p.next(); r {
@@ -91,7 +106,7 @@ Loop:
 		case RBracket:
 			break Loop
 
-		case Dot, QuestMark, Mul, Plus:
+		case Dot, QuestMark, Mul, Plus, LParen, RParen, Or, Caret:
 			r = Unescape(r)
 			fallthrough
 		default:

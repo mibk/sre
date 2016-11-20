@@ -21,6 +21,9 @@ func TestMatch(t *testing.T) {
 		10: {`ab|cd|ef`, `cd`, true},
 		11: {`ab|cd|ef`, `ef`, true},
 		12: {`(xy)+`, `xyxyxy`, true},
+		13: {`[^^]`, `^`, false},
+		14: {`[^\^]`, `^`, false},
+		15: {`\^[^\^]`, `^r`, true},
 	}
 
 	for i, tt := range tests {
