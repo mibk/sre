@@ -19,7 +19,7 @@ func (g *Group) add(expr Expr) {
 
 func (g *Group) last() (*Expr, error) {
 	if len(g.Exprs) == 0 {
-		return nil, errors.New("missing argument to quantifier")
+		return nil, errors.New("missing argument to repetition")
 	}
 	return &g.Exprs[len(g.Exprs)-1], nil
 }
