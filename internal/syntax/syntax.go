@@ -17,11 +17,12 @@ func (g *Group) add(expr Expr) {
 	g.Exprs = append(g.Exprs, expr)
 }
 
-func (g *Group) last() (*Expr, error) {
+func (g *Group) repeatLastExpr(min, max int) error {
 	if len(g.Exprs) == 0 {
-		return nil, errors.New("missing argument to repetition")
+		return errors.New("missing argument to repetition")
 	}
-	return &g.Exprs[len(g.Exprs)-1], nil
+	g.Exprs[len(g.Exprs)-1] = NewRepetition(g.Exprs[len(g.Exprs)-1], min, max)
+	return nil
 }
 
 func (g *Group) Consume(b []byte) (n int, ok bool) {

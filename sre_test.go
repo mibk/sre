@@ -24,6 +24,17 @@ func TestMatch(t *testing.T) {
 		13: {`[^^]`, `^`, false},
 		14: {`[^\^]`, `^`, false},
 		15: {`\^[^\^]`, `^r`, true},
+
+		16: {`x{}]`, `x{}]`, true},
+		17: {`x{2}`, `xx`, true},
+		18: {`x{2}`, `x`, false},
+		19: {`x{2}`, `xxx`, false},
+		20: {`x{2,5}`, `xx`, true},
+		21: {`x{2,5}`, `xxxxx`, true},
+		22: {`x{2,5}`, `x`, false},
+		23: {`x{2,5}`, `xxxxxx`, false},
+		24: {`x{,5}`, ``, true},
+		25: {`x{2,}`, `xxxxx`, true},
 	}
 
 	for i, tt := range tests {

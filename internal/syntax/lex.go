@@ -20,6 +20,8 @@ const (
 	RBracket
 	LParen
 	RParen
+	LBrace
+	RBrace
 
 	Or
 	Caret
@@ -34,6 +36,8 @@ var specials = map[rune]rune{
 	RBracket:  ']',
 	LParen:    '(',
 	RParen:    ')',
+	LBrace:    '{',
+	RBrace:    '}',
 	Or:        '|',
 	Caret:     '^',
 }
@@ -66,7 +70,7 @@ func (l *lexer) Next() rune {
 		case EOF:
 			l.err = errors.New("trailing backslash")
 			return Error
-		case '\\', '.', '?', '*', '+', '[', ']', '(', ')', '|', '^':
+		case '\\', '.', '?', '*', '+', '[', ']', '(', ')', '{', '}', '|', '^':
 			return r
 		default:
 			l.err = fmt.Errorf(`invalid escape sequence: \%c`)
@@ -88,6 +92,10 @@ func (l *lexer) Next() rune {
 		return LParen
 	case ')':
 		return RParen
+	case '{':
+		return LBrace
+	case '}':
+		return RBrace
 	case '|':
 		return Or
 	case '^':

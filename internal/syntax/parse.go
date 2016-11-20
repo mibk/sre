@@ -1,6 +1,9 @@
 package syntax
 
-import "errors"
+import (
+	"errors"
+	"strconv"
+)
 
 type parser struct {
 	lex    *lexer
@@ -54,21 +57,18 @@ Loop:
 		switch r := p.next(); r {
 		case EOF:
 			break Loop
-		case QuestMark, Mul, Plus:
-			last, err := gr.last()
-			if err != nil {
-				p.saveErr(err)
-				return nil
+		case QuestMark:
+			p.saveErr(gr.repeatLastExpr(0, 1))
+		case Mul:
+			p.saveErr(gr.repeatLastExpr(0, Unlimited))
+		case Plus:
+			p.saveErr(gr.repeatLastExpr(1, Unlimited))
+		case LBrace:
+			if r := p.peek(); r == ',' || isDigit(r) {
+				p.saveErr(gr.repeatLastExpr(p.parseRepetition()))
+				continue
 			}
-			min, max := 0, 1
-			switch r {
-			case Plus:
-				min = 1
-				fallthrough
-			case Mul:
-				max = Unlimited
-			}
-			*last = NewRepetition(*last, min, max)
+			gr.add(Char(Unescape(r)))
 		case Dot:
 			gr.add(Any{})
 		case LBracket:
@@ -84,6 +84,8 @@ Loop:
 			}
 			p.saveErr(errors.New("unexpected )"))
 			return nil
+		case RBracket, RBrace:
+			gr.add(Char(Unescape(r)))
 		default:
 			gr.add(Char(r))
 		}
@@ -119,3 +121,34 @@ Loop:
 	}
 	return &cs
 }
+
+func (p *parser) parseRepetition() (min, max int) {
+	min, max = 0, Unlimited
+	if isDigit(p.peek()) {
+		min = p.parseInt()
+	}
+	if p.peek() == ',' {
+		p.next()
+		if isDigit(p.peek()) {
+			max = p.parseInt()
+		}
+	} else {
+		max = min
+	}
+	if p.next() != RBrace {
+		p.saveErr(errors.New("expected }"))
+	}
+	return min, max
+}
+
+func (p *parser) parseInt() int {
+	var digits []byte
+	for isDigit(p.peek()) {
+		digits = append(digits, byte(p.next()))
+	}
+	i, err := strconv.Atoi(string(digits))
+	p.saveErr(err)
+	return i
+}
+
+func isDigit(r rune) bool { return r >= '0' && r <= '9' }
