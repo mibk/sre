@@ -7,14 +7,14 @@ type parser struct {
 	err error
 }
 
-func Compile(str string) (*Group, error) {
+func Compile(str string) (Expr, error) {
 	l := newLexer(str)
 	p := &parser{lex: l}
-	gr := p.parseGroup()
+	expr := p.parseGroup()
 	if p.err != nil {
 		return nil, p.err
 	}
-	return gr, nil
+	return expr, nil
 }
 
 func (p *parser) next() rune {
@@ -35,8 +35,9 @@ func (p *parser) saveErr(err error) {
 	}
 }
 
-func (p *parser) parseGroup() *Group {
-	var gr Group
+func (p *parser) parseGroup() Expr {
+	gr := new(Group)
+	var expr Expr = gr
 Loop:
 	for {
 		switch r := p.next(); r {
@@ -61,11 +62,14 @@ Loop:
 			gr.add(Any{})
 		case LBracket:
 			gr.add(p.parseCharSet())
+		case Or:
+			gr = new(Group)
+			expr = &OrGroup{expr, gr}
 		default:
 			gr.add(Char(r))
 		}
 	}
-	return &gr
+	return expr
 }
 
 func (p *parser) parseCharSet() *CharSet {

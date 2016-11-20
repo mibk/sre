@@ -18,6 +18,8 @@ const (
 
 	LBracket
 	RBracket
+
+	Or
 )
 
 var specials = map[rune]rune{
@@ -25,6 +27,7 @@ var specials = map[rune]rune{
 	QuestMark: '?',
 	Mul:       '*',
 	Plus:      '+',
+	Or:        '|',
 }
 
 func Unescape(r rune) rune {
@@ -55,7 +58,7 @@ func (l *lexer) Next() rune {
 		case EOF:
 			l.err = errors.New("trailing backslash")
 			return Error
-		case '\\', '.', '?', '*', '+', '[', ']':
+		case '\\', '.', '?', '*', '+', '[', ']', '|':
 			return r
 		default:
 			l.err = fmt.Errorf(`invalid escape sequence: \%c`)
@@ -73,6 +76,8 @@ func (l *lexer) Next() rune {
 		return LBracket
 	case ']':
 		return RBracket
+	case '|':
+		return Or
 	default:
 		return r
 	}

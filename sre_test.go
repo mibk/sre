@@ -8,15 +8,18 @@ func TestMatch(t *testing.T) {
 		input   string
 		want    bool
 	}{
-		0: {`ab+`, `abbbb`, true},
-		1: {`ab+`, `a`, false},
-		2: {`x+y`, `xxxxxy`, true},
-		3: {`x+y`, `xyy`, false},
-		4: {`č+řř`, `ččřř`, true},
-		5: {`a?bb?ccc?d*e*`, `bbcce`, true},
-		6: {`\..\.`, `.+.`, true},
-		7: {`[ab]+`, `abbbaaab`, true},
-		8: {`[ab]+`, `abbbaaabx`, false},
+		0:  {`ab+`, `abbbb`, true},
+		1:  {`ab+`, `a`, false},
+		2:  {`x+y`, `xxxxxy`, true},
+		3:  {`x+y`, `xyy`, false},
+		4:  {`č+řř`, `ččřř`, true},
+		5:  {`a?bb?ccc?d*e*`, `bbcce`, true},
+		6:  {`\..\.`, `.+.`, true},
+		7:  {`[ab]+`, `abbbaaab`, true},
+		8:  {`[ab]+`, `abbbaaabx`, false},
+		9:  {`ab|cd|ef`, `ab`, true},
+		10: {`ab|cd|ef`, `cd`, true},
+		11: {`ab|cd|ef`, `ef`, true},
 	}
 
 	for i, tt := range tests {

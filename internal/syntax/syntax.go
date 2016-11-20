@@ -5,6 +5,10 @@ import (
 	"unicode/utf8"
 )
 
+type Expr interface {
+	Consume(b []byte) (n int, ok bool)
+}
+
 type Group struct {
 	Exprs []Expr
 }
@@ -20,19 +24,29 @@ func (g *Group) last() (*Expr, error) {
 	return &g.Exprs[len(g.Exprs)-1], nil
 }
 
-func (g *Group) Match(b []byte) bool {
+func (g *Group) Consume(b []byte) (n int, ok bool) {
+	var m int
 	for _, e := range g.Exprs {
 		n, ok := e.Consume(b)
 		if !ok {
-			return false
+			return 0, false
 		}
 		b = b[n:]
+		m += n
 	}
-	return len(b) == 0
+	return m, true
 }
 
-type Expr interface {
-	Consume(b []byte) (n int, ok bool)
+type OrGroup struct {
+	Lhs Expr
+	Rhs Expr
+}
+
+func (og OrGroup) Consume(b []byte) (n int, ok bool) {
+	if n, ok = og.Lhs.Consume(b); ok {
+		return n, ok
+	}
+	return og.Rhs.Consume(b)
 }
 
 type Char rune
